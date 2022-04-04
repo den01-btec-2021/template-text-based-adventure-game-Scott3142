@@ -1,4 +1,4 @@
-import time
+from threading import Timer
 
 def main():
     
@@ -58,18 +58,37 @@ def main():
 
 def in_room(backpack,lives,room_direction,puzzle,puzzle_solution,key_number):
   print(f"You entered the {room_direction} Room.")  
+  
+  # Implement input timer
+  time_limit = 3
+  timeout_container = [False]
+  lives_container = [lives]
+  t = Timer(time_limit, check_time_out, args=(lives_container,timeout_container,))
+  t.start()
+  print(f"You have {time_limit} seconds to choose the correct answer...\n")
   puzzle_guess = input(puzzle)
-  if puzzle_guess == puzzle_solution:
-    if f"Key {key_number}" not in backpack:
-      print(f"Correct. Key {key_number} collected.")
-      backpack.append(f"Key {key_number}")
+  t.cancel()
+  lives = lives_container[0]
+  timeout = timeout_container[0]
+
+  if not timeout:
+    if puzzle_guess == puzzle_solution:
+      if f"Key {key_number}" not in backpack:
+        print(f"Correct. Key {key_number} collected.")
+        backpack.append(f"Key {key_number}")
+      else:
+        print("You have already collected this key!")
     else:
-      print("You have already collected this key!")
-  else:
-    lives -= 1
-    print(f"Incorrect. You have {lives} lives remaining.")
+      lives -= 1
+      print(f"Incorrect. You have {lives} lives remaining.")
 
   return lives
+
+def check_time_out(lives_container,timeout_container):
+  lives_container[0] -= 1
+  print(f"Time out! You have {lives_container[0]} lives remaining. Press Enter to continue.")
+  timeout_container[0] = True
+  return lives_container, timeout_container
 
 if __name__ == '__main__':
   main()
